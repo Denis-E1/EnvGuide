@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Jac on Windows + WSL — Setup Guide</title>
+<meta name="description" content="Step-by-step guide to install WSL, Python, VS Code, Jac, byLLM, and connect GitHub on Windows."/>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#11161d; --muted:#9bb0c7; --text:#e7f5ff; --line:#1f2b36;
+    --accent:#b6f28f; --accent-2:#6ee7b7; --danger:#f43f5e; --ok:#34d399;
+    --code:#0c1218;
+    --maxw: 1100px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#ffffff; --panel:#f6f8fa; --muted:#5b6b7a; --text:#0b1217; --line:#e2e8f0;
+      --code:#f9fafb; --accent:#2e7d32; --accent-2:#0ea5e9;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15.5px/1.55 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+  a{color:var(--accent-2);text-decoration:none} a:hover{text-decoration:underline}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:24px 16px}
+  header{background:linear-gradient(180deg, rgba(182,242,143,0.15), transparent 60%);border-bottom:1px solid var(--line)}
+  .hero{max-width:var(--maxw);margin:0 auto;padding:34px 16px}
+  h1{margin:0 0 8px;font-size:28px}
+  .lead{color:var(--muted);margin:6px 0 14px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:12px;border:1px solid var(--line);background:var(--panel);padding:6px 8px;border-radius:999px}
+  main{display:grid;grid-template-columns:280px 1fr;gap:18px}
+  nav{position:sticky;top:16px;align-self:start}
+  .toc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .toc h3{margin:6px 0 10px;font-size:13px;color:var(--muted);letter-spacing:.03em;text-transform:uppercase}
+  .toc a{display:block;padding:6px 8px;border-radius:8px;color:var(--text)}
+  .toc a:hover{background:rgba(255,255,255,.04)}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px}
+  h2{margin:0 0 10px;font-size:20px}
+  h3{margin:18px 0 8px;font-size:16px}
+  .tip,.warn{border:1px dashed var(--line);padding:10px;border-radius:10px;margin:10px 0;font-size:14px}
+  .tip{background:rgba(182,242,143,.08)} .warn{background:rgba(244,63,94,.08)}
+  pre{margin:10px 0 0;background:var(--code);border:1px solid var(--line);border-radius:10px;position:relative;overflow:auto}
+  code{display:block;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:13.5px;tab-size:2;white-space:pre}
+  .kbd{padding:1px 6px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-family:inherit}
+  .copy{position:absolute;top:6px;right:6px;background:#13211a;border:1px solid #274b35;color:#d1fae5;padding:6px 8px;border-radius:8px;font-size:12px;cursor:pointer}
+  .copy.ok{background:#13211a;border-color:#34d399}
+  .grid{display:grid;gap:12px}
+  .two{grid-template-columns:1fr 1fr}
+  footer{color:var(--muted);font-size:13px;text-align:center;padding:24px 0}
+  @media (max-width:1000px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hero">
+    <h1>Jac on Windows + WSL — Setup Guide</h1>
+    <p class="lead">From zero → working environment: WSL (Ubuntu), Python 3.12, VS Code, Jac, byLLM (Gemini), and GitHub.</p>
+    <div class="badges">
+      <span class="chip">Windows 10/11</span>
+      <span class="chip">WSL (Ubuntu)</span>
+      <span class="chip">Python 3.12+</span>
+      <span class="chip">Jac 0.8.x</span>
+      <span class="chip">byLLM 0.4.x</span>
+      <span class="chip">VS Code</span>
+      <span class="chip">GitHub (SSH)</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <main>
+    <nav>
+      <div class="toc">
+        <h3>Steps</h3>
+        <a href="#step-0">0) PowerShell (Admin)</a>
+        <a href="#step-1">1) Install WSL + Ubuntu</a>
+        <a href="#step-2">2) Update Ubuntu</a>
+        <a href="#step-3">3) Python 3.12</a>
+        <a href="#step-4">4) VS Code + Extensions</a>
+        <a href="#step-5">5) Project folder</a>
+        <a href="#step-6">6) Virtual env + pip</a>
+        <a href="#step-7">7) Install Jac</a>
+        <a href="#step-8">8) Open in VS Code</a>
+        <a href="#step-9">9) Hello Jac</a>
+        <a href="#step-10">10) byLLM + Gemini</a>
+        <a href="#step-11">11) Tiny API (optional)</a>
+        <a href="#step-12">12) Git + GitHub</a>
+        <a href="#step-13">13) Daily workflow</a>
+        <a href="#step-14">14) Troubleshooting</a>
+        <hr style="border:none;border-top:1px solid var(--line);margin:10px 0">
+        <a href="#windows-only">Windows-only (no WSL)</a>
+        <a href="#publish">Publish on GitHub Pages</a>
+      </div>
+    </nav>
+
+    <div class="content">
+      <section id="step-0">
+        <h2>0) Open PowerShell (Admin)</h2>
+        <div class="tip">Press <span class="kbd">Win</span>, type <b>PowerShell</b>, right-click → <b>Run as administrator</b>.</div>
+      </section>
+
+      <section id="step-1">
+        <h2>1) Install WSL + Ubuntu</h2>
+        <p>Run in <b>PowerShell (Admin)</b>:</p>
+        <pre><button class="copy">Copy</button><code>wsl --install -d Ubuntu</code></pre>
+        <div class="tip">Reboot if asked. On first Ubuntu launch, create a <b>Linux username</b> and <b>password</b>.</div>
+      </section>
+
+      <section id="step-2">
+        <h2>2) Update Ubuntu</h2>
+        <p>Run inside the <b>Ubuntu (WSL) terminal</b>:</p>
+        <pre><button class="copy">Copy</button><code>sudo apt update && sudo apt -y upgrade
+sudo apt -y install build-essential git curl pkg-config</code></pre>
+      </section>
+
+      <section id="step-3">
+        <h2>3) Install Python 3.12</h2>
+        <pre><button class="copy">Copy</button><code>python3 --version  # if &lt; 3.12 then install:
+sudo apt -y install software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt update
+sudo apt -y install python3.12 python3.12-venv python3.12-dev
+python3.12 --version</code></pre>
+      </section>
+
+      <section id="step-4">
+        <h2>4) VS Code + Extensions (Windows)</h2>
+        <pre><button class="copy">Copy</button><code>winget install --id=Microsoft.VisualStudioCode -e</code></pre>
+        <p>In VS Code → Extensions: install <b>WSL</b>, <b>Python</b>, <b>Pylance</b>. (Optional: GitHub Pull Requests, EditorConfig)</p>
+      </section>
+
+      <section id="step-5">
+        <h2>5) Create project (WSL)</h2>
+        <pre><button class="copy">Copy</button><code>mkdir -p ~/projects/jac-starter
+cd ~/projects/jac-starter</code></pre>
+      </section>
+
+      <section id="step-6">
+        <h2>6) Virtual env + pip (WSL)</h2>
+        <pre><button class="copy">Copy</button><code>python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -U pip</code></pre>
+      </section>
+
+      <section id="step-7">
+        <h2>7) Install Jac (+ FastAPI stack)</h2>
+        <pre><button class="copy">Copy</button><code>pip install jaclang byllm fastapi "uvicorn[standard]"
+jac --version   # expect: 0.8.x</code></pre>
+      </section>
+
+      <section id="step-8">
+        <h2>8) Open in VS Code (WSL)</h2>
+        <pre><button class="copy">Copy</button><code>code .</code></pre>
+        <div class="tip">VS Code → <b>Python: Select Interpreter</b> → choose <b>.venv/bin/python</b>.</div>
+      </section>
+
+      <section id="step-9">
+        <h2>9) Hello Jac</h2>
+        <pre><button class="copy">Copy</button><code>cat > main.jac &lt;&lt;'JAC'
+with entry {
+    print("Hello from Jac on WSL!");
+}
+JAC
+
+jac check main.jac
+jac run main.jac</code></pre>
+      </section>
+
+      <section id="step-10">
+        <h2>10) byLLM + Gemini (typed LLM)</h2>
+        <p>Get a key: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Google AI Studio</a></p>
+        <pre><button class="copy">Copy</button><code>echo 'export GEMINI_API_KEY="PASTE_YOUR_KEY_HERE"' &gt;&gt; ~/.bashrc
+echo 'export JAC_MODEL="gemini/gemini-1.5-flash-8b-latest"' &gt;&gt; ~/.bashrc
+source ~/.bashrc</code></pre>
+        <pre><button class="copy">Copy</button><code>cat > llm_demo.jac &lt;&lt;'JAC'
+py import os;
+py import byllm;
+
+glob llm = byllm.Model(model_name=os.getenv("JAC_MODEL", "gemini/gemini-1.5-flash-8b-latest"));
+
+def generate_password() -> str by llm();
+
+sem generate_password = """
+Generate a strong password (>=12 chars) with upper, lower, digit, and symbol.
+""";
+
+with entry {
+    print(generate_password());
+}
+JAC
+
+jac check llm_demo.jac
+jac run llm_demo.jac</code></pre>
+        <div class="tip">Model must include provider prefix: <b>gemini/…</b></div>
+      </section>
+
+      <section id="step-11">
+        <h2>11) Tiny API server (optional)</h2>
+        <pre><button class="copy">Copy</button><code>cat > app.py &lt;&lt;'PY'
+from fastapi import FastAPI
+app = FastAPI()
+@app.get("/")
+def root(): return {"ok": True, "msg": "WSL + Jac ready"}
+PY
+
+uvicorn app:app --host 0.0.0.0 --port 8000
+# open http://localhost:8000</code></pre>
+      </section>
+
+      <section id="step-12">
+        <h2>12) Git + GitHub (SSH)</h2>
+        <div class="grid two">
+          <div>
+            <h3>Configure Git</h3>
+            <pre><button class="copy">Copy</button><code>git config --global user.name  "Your Name"
+git config --global user.email "you@example.com"</code></pre>
+          </div>
+          <div>
+            <h3>Create SSH key</h3>
+            <pre><button class="copy">Copy</button><code>ssh-keygen -t ed25519 -C "you@example.com"
+cat ~/.ssh/id_ed25519.pub
+# add to GitHub → Settings → SSH keys</code></pre>
+          </div>
+        </div>
+        <h3>First commit & push</h3>
+        <pre><button class="copy">Copy</button><code>git init
+git add .
+git commit -m "chore: WSL + Jac setup"
+git branch -M main
+git remote add origin git@github.com:&lt;you&gt;/&lt;repo&gt;.git
+git push -u origin main</code></pre>
+        <div class="tip">Multiple accounts? Add an SSH host alias in <code>~/.ssh/config</code> and use it in your remote URL.</div>
+      </section>
+
+      <section id="step-13">
+        <h2>13) Daily workflow</h2>
+        <pre><button class="copy">Copy</button><code>cd ~/projects/jac-starter
+source .venv/bin/activate
+code .
+
+# run Jac
+jac run main.jac
+
+# run LLM demo
+export GEMINI_API_KEY="..."
+export JAC_MODEL="gemini/gemini-1.5-flash-8b-latest"
+jac run llm_demo.jac</code></pre>
+      </section>
+
+      <section id="step-14">
+        <h2>14) Troubleshooting</h2>
+        <div class="warn"><b>jac: command not found</b> → activate venv: <code>source .venv/bin/activate</code> and/or reinstall <code>pip install jaclang</code>.</div>
+        <div class="warn"><b>byLLM provider error</b> → ensure <code>JAC_MODEL="gemini/…"</code> and <code>GEMINI_API_KEY</code> is set.</div>
+        <div class="warn"><b>VS Code can’t see venv</b> → “Python: Select Interpreter” → pick <code>.venv/bin/python</code>.</div>
+        <div class="warn"><b>Push rejected</b> → if remote has a README, run <code>git pull --rebase origin main</code> then push.</div>
+      </section>
+
+      <section id="windows-only">
+        <h2>Windows-only (no WSL)</h2>
+        <pre><button class="copy">Copy</button><code>winget install Python.Python.3.12 Git.Git Microsoft.VisualStudioCode -e
+mkdir C:\dev\jac &amp; cd C:\dev\jac
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -U pip jaclang byllm
+notepad main.jac
+# paste hello-jac, then:
+jac run .\main.jac</code></pre>
+        <div class="tip">If activation is blocked, run once in PowerShell: <code>Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned</code></div>
+      </section>
+
+          </div>
+  </main>
+
+  <footer>Made with love for beginners. Happy coding with Jac! - Denis ✨</footer>
+</div>
+
+<script>
+  // Copy-to-clipboard for every code block
+  document.querySelectorAll('.copy').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const code = btn.parentElement.querySelector('code').innerText;
+      navigator.clipboard.writeText(code).then(()=>{
+        btn.classList.add('ok'); btn.textContent='Copied';
+        setTimeout(()=>{btn.classList.remove('ok'); btn.textContent='Copy';},1200);
+      });
+    });
+  });
+</script>
+</body>
+</html>
